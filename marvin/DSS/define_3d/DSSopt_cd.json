@@ -1,0 +1,308 @@
+{
+	"train": {
+		"solver": "SGD",
+		"regularizer": "L2",
+		"momentum": 0.9,
+		"weight_decay": 0.0005,
+		"base_lr": 0.01,
+		"lr_policy": "LR_step",
+		"lr_gamma": 0.1,
+		"lr_stepsize": 5000,
+		"path": "/home/shurans/deepDetectLocal/trainedcnn/color_depth/DSSnet",
+		"snapshot_prefix": "/home/shurans/deepDetectLocal/trainedcnn/color_depth/snapshot",
+		"max_iter": 10000,
+		"snapshot_iter": 5000,
+		"display_iter": 20,
+		"test_iter": 5,
+		"test_interval": 100,
+		"GPU": 4
+	},
+	"test": {
+		"GPU": 0
+	},
+	"layers": [
+		{
+			"type": "Scene3DData",
+			"name": "dataTrain",
+			"phase": "Training",
+			"data_root": "/home/shurans/deepDetectLocal/sunrgbd_dss_data/",
+			"file_list": "/n/fs/modelnet/deepDetect/proposal/RPN_multi_dpcv10.35top150_5000/boxes_NYU_po_train_diff_nb2000_fb.list",
+			"grid_size": [3,30,30,30],
+			"batch_size": [288,96],
+			"num_categories": 20,
+			"bb_param_weight": [1,1,1,1,1,1],
+			"encode_type": 100,
+			"scale": 100,
+			"box_reg": true,
+			"context_pad": 3,
+			"out": [
+				"data",
+				"label",
+				"bb_tar_diff",
+				"bb_loss_weights",
+				"img_fea"
+			],
+			"GPU": 4,
+			"num_percate": 0,
+			"is_combineimg":true,
+			"is_combinehha":false,
+			"img_fea_folder":"/data/02/deepDetectLocal/image_fea/RPN_multi_dpcv10.35top150_5000/po/",
+			"imgfea_dim":4096,
+			"is_render": false
+		},
+		{
+			"type": "Scene3DData",
+			"name": "dataTest",
+			"phase": "Testing",
+			"data_root": "/home/shurans/deepDetectLocal/sunrgbd_dss_data/",
+			"file_list": "/n/fs/modelnet/deepDetect/proposal/RPN_multi_dpcv10.35top150_5000//boxes_NYU_po_test_nb2000_fb.list",
+			"grid_size": [3,30,30,30],
+			"batch_size": [384],
+			"num_categories": 20,
+			"bb_param_weight": [1,1,1,1,1,1],
+			"encode_type": 100,
+			"scale": 100,
+			"box_reg": true,
+			"context_pad": 3,
+			"out": [
+				"data",
+				"label",
+				"bb_tar_diff",
+				"bb_loss_weights",
+				"img_fea"
+			],
+			"GPU": 4,
+			"num_percate": 0,
+			"is_combineimg":true,
+			"is_combinehha":false,
+			"img_fea_folder":"/data/02/deepDetectLocal/image_fea/RPN_multi_dpcv10.35top150_5000/po/",
+			"imgfea_dim":4096,
+			"is_render": false
+		},
+		{
+				"in": "data",
+			"type": "Convolution",
+			"name": "conv1",
+			"num_output": 96,
+			"window": [5,5,5],
+			"padding": [1,1,1],
+			"stride": [1,1,1],
+			"upscale": [1,1,1],
+			"weight_lr_mult": 1,
+			"weight_decay_mult": 1,
+			"weight_filler": "Gaussian",
+			"weight_filler_param": 0.01,
+			"bias_lr_mult": 2,
+			"bias_decay_mult": 0,
+			"bias_filler": "Constant",
+			"bias_filler_param": 0,
+			"train_me": 1,
+			"train_me":true,
+			"out": "conv1"
+
+		},
+		{
+				"in": "conv1",
+			"type": "Activation",
+			"name": "relu1",
+			"mode": "ReLU",
+				"out": "conv1"
+		},
+		{
+				"in": "conv1",
+			"type": "Pooling",
+			"name": "pool1",
+			"mode": "max",
+			"window": [2,2,2],
+			"padding": [0,0,0],
+			"stride": [2,2,2],
+				"out": "pool1"
+		},
+		{
+				"in": "pool1",
+			"type": "Convolution",
+			"name": "conv2",
+			"num_output": 192,
+			"window": [3,3,3],
+			"stride": [1,1,1],
+			"weight_lr_mult": 1,
+			"weight_decay_mult": 1,
+			"weight_filler": "Gaussian",
+			"weight_filler_param": 0.01,
+			"bias_lr_mult": 2,
+			"bias_decay_mult": 0,
+			"bias_filler": "Constant",
+			"bias_filler_param": 0,
+			"train_me": 1,
+			"train_me":true,
+				"out": "conv2"
+		},
+		{
+				"in": "conv2",
+			"type": "Activation",
+			"name": "relu2",
+			"mode": "ReLU",
+				"out": "conv2"
+		},
+		{
+				"in": "conv2",
+			"type": "Pooling",
+			"name": "pool2",
+			"mode": "max",
+			"window": [2,2,2],
+			"stride": [2,2,2],
+				"out": "pool2"
+		},
+		{
+			"in": "pool2",
+			"type": "Convolution",
+			"name": "conv3",
+			"num_output": 384,
+			"window": [3,3,3],
+			"stride": [1,1,1],
+			"weight_lr_mult": 1,
+			"weight_decay_mult": 1,
+			"weight_filler": "Gaussian",
+			"weight_filler_param": 0.01,
+			"bias_lr_mult": 2,
+			"bias_decay_mult": 0,
+			"bias_filler": "Constant",
+			"bias_filler_param": 0,
+			"train_me": true,
+			"out": "conv3"
+		},
+		{
+			"in": "conv3",
+			"type": "Activation",
+			"name": "relu3",
+			"mode": "ReLU",
+			"out": "conv3"
+		},
+		{
+				"in": "conv3",
+			"type": "InnerProduct",
+			"name": "fc4",
+			"num_output": 4096,
+			"weight_lr_mult": 1,
+			"weight_decay_mult": 1,
+			"weight_filler": "Gaussian",
+			"weight_filler_param": 0.01,
+			"bias_lr_mult": 2,
+			"bias_decay_mult": 0,
+			"bias_filler": "Constant",
+			"bias_filler_param": 1,
+			"train_me": true,
+				"out": "fc4"
+		},
+		{
+			"in": "fc4",
+			"type": "Activation",
+			"name": "relu4",
+			"mode": "ReLU",
+			"out": "fc4"
+		},
+		{
+			"in": "fc4",
+			"type": "Dropout",
+			"name": "drop4",
+			"dropout_ratio": 0.5,
+			"out": "fc4"
+		},
+		{
+			"in":["fc4","img_fea"],
+			"type":"Concat",
+			"name":"ConcateLayer",
+			"out":["combine"]
+		},
+		{
+			"in": "combine",
+			"type": "InnerProduct",
+			"name": "fc5",
+			"num_output": 1000,
+			"weight_lr_mult": 1,
+			"weight_decay_mult": 1,
+			"weight_filler": "Gaussian",
+			"weight_filler_param": 0.005,
+			"bias_lr_mult": 2,
+			"bias_decay_mult": 0,
+			"bias_filler": "Constant",
+			"bias_filler_param": 1,
+			"train_me": true,
+			"out": "fc5"
+		},
+		{
+			"in": "fc5",
+			"type": "Activation",
+			"name": "relu5",
+			"mode": "ReLU",
+			"out":  "fc5"
+		},
+		{
+			"in": "fc5",
+			"type": "Dropout",
+			"name": "drop5",
+			"dropout_ratio": 0.5,
+			"out": "fc5"
+		},
+		{
+			"in": "fc5",
+			"type": "InnerProduct",
+			"name": "fc_cls",
+			"num_output": 20,
+			"weight_lr_mult": 1,
+			"weight_decay_mult": 1,
+			"weight_filler": "Gaussian",
+			"weight_filler_param": 0.01,
+			"bias_lr_mult": 2,
+			"bias_decay_mult": 0,
+			"bias_filler": "Constant",
+			"bias_filler_param": 0,
+			"train_me": true,
+			"out": "cls_score"
+		},
+		{
+			"in": "fc5",
+			"type": "InnerProduct",
+			"name": "fc_box_pred",
+			"num_output": 120,
+			"weight_lr_mult": 1,
+			"weight_decay_mult": 1,
+			"weight_filler": "Gaussian",
+			"weight_filler_param": 0.01,
+			"bias_lr_mult": 2,
+			"bias_decay_mult": 0,
+			"bias_filler": "Constant",
+			"bias_filler_param": 0,
+			"train_me": true,
+			"out": "box_pred"
+		},
+		{
+			"in": "cls_score",
+			"type": "Softmax",
+			"stable_gradient": true,
+			"name": "cls_score",
+			"out": "cls_score"
+		},
+		{
+			"in": [
+				"cls_score",
+				"label"
+			],
+			"type": "Loss",
+			"name": "loss_cls",
+			"mode": "MultinomialLogistic_StableSoftmax",
+			"loss_weight": 1
+		},
+		{
+			"in": [
+				"box_pred",
+				"bb_tar_diff",
+				"bb_loss_weights"
+			],
+			"type": "Loss",
+			"name": "loss_bbox",
+			"mode": "SmoothL1",
+			"loss_weight": 120
+		}
+	]
+}

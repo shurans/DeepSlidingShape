@@ -1,0 +1,4 @@
+cd /n/fs/modelnet/deepDetect/Release/code/marvin/;
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cudnn/v3/lib64/;
+ ./marvin train /n/fs/modelnet/deepDetect/Release/code/marvin/DSS/define_3d/dss_100_breg120_RPN_NYU_bs3_boxreg/DSSnet.json 2>&1 | tee  /home/shurans/deepDetectLocal/marvinlog/dss_100_breg120_RPN_NYU_bs3_boxreg.log;
+./marvin test /n/fs/modelnet/deepDetect/Release/code/marvin/DSS/define_3d/dss_100_breg120_RPN_NYU_bs3_boxreg/DSS_extractfea_po.json /home/shurans/deepDetectLocal/trainedcnn/dss_100_breg120_RPN_NYU_bs3_boxreg/DSSnet.marvin fc5,cls_score,box_pred /home/shurans/deepDetectLocal/feature/dss_100_breg120_RPN_NYU_bs3_boxregiter_10000/po/fc5.tensor,/home/shurans/deepDetectLocal/feature/dss_100_breg120_RPN_NYU_bs3_boxregiter_10000/po/fc6.tensor,/home/shurans/deepDetectLocal/feature/dss_100_breg120_RPN_NYU_bs3_boxregiter_10000/po/box_pred.tensor
