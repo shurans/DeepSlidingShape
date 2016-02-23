@@ -6,7 +6,6 @@ load(fullfile(opt.SUNrgbd_toolbox,'Metadata/SUNRGBDMeta.mat'));
 
 load('cls.mat');
 load('anchorBox');
-load('size_group_0.35.mat');
 nmsthralign = 0.35;
 fullinfo = 1;
 

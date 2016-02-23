@@ -33,4 +33,5 @@ function gensorttableWeb(htmlFullName,imagesNameall,fieldvalues,fieldNames,texts
         fprintf(htmlFile,'</tbody>\n</table>');
         fprintf(htmlFile,'</body>\n');
         fprintf(htmlFile,'</html>\n');
+        fclose(htmlFile);
 end

@@ -1,7 +1,7 @@
 function dss_marvin_script(gpuid,featype,NYUonly,architecturefile,box_reg,poName,fullbox,preTrainModel,is_combineimg,is_combinehha)
 % cd /n/fs/modelnet/deepDetect/Release/code/matlab_code
-% dss_marvin_script(0,100,1  ,[]  ,1,'RPN_NYU',1,[],0,0);
-% dss_marvin_script(2,100,0,0,'cd',1,'RPN_NYU',1,[],1,0);
+% dss_marvin_script(0,100,1,[]  ,1,'RPN_NYU',1,[],0,0);
+% dss_marvin_script(2,100,0,'cd',1,'RPN_NYU',1,[],1,0);
 opt = dss_initPath();
 load('cls.mat');
 

@@ -30,7 +30,7 @@
 
 * 3D object detection network: 
     1. change path in dss_initPath.m;
-    2. run dss_marvin_script(0,100,1,[],10000,3,3,100,0.25,5000,30,1,120,0,'RPN_NYU',1,[],0,0);
+    2. run dss_marvin_script(0,100,1,[]  ,1,'RPN_NYU',1,[],0,0);
 
 Note :
     If matlab system call fails, you can try to run the command directly.
