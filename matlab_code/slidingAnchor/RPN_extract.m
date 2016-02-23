@@ -7,7 +7,7 @@ load(fullfile(opt.SUNrgbd_toolbox,'Metadata/SUNRGBDMeta.mat'));
 load('cls.mat');
 load('anchorBox');
 nmsthralign = 0.35;
-fullinfo = 1;
+fullinfo = 0;
 
 
 NYUonly = 1; folderName = 'multi_dpcv1';            trainiter = 5000;
@@ -267,6 +267,7 @@ for imageNum = imageNums
         
         % visulize it 
         if 0
+            %{
             clf 
             imshow(data.rgbpath)
             for bi = 1:length(candidates3d)
@@ -279,6 +280,7 @@ for imageNum = imageNums
                 rectangle('Position',  candidates3d(bi).box2d_proj+candidates3d(bi).diff_2dp,'edgecolor','m');
                 pause;
             end
+            %}
             clf
             [GTmaxOverlap,bestCand] = max(oscfM_r);
             [rgb,points3d,imgZ]=read3dPoints(data);
