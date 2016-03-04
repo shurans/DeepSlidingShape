@@ -34,6 +34,9 @@
     Pretrained model:     
     http://dss.cs.princeton.edu/Release/pretrainedModels/DSS/ORN/DSSnet_ORN_d.marvin
 
-Note :
-    If matlab system call fails, you can try to run the command directly.
+Notes :
+    1. If matlab system call fails, you can try to run the command directly.
+    2. The rotation matrixes for some of the images in the dataset () are different from the original SUNRGB-D dataset,  so that the rotation only contains camera tilt angle (i.e. point cloud does not rotated on the x,y plane). 
+    All the results and ground truth boxes provided in this repo are using this rotation matrix. 
+    To convert the rotation matrix you can reference the code "changeRoomR.m"
    
