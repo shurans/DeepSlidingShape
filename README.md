@@ -31,6 +31,8 @@
 * 3D object detection network: 
     1. change path in dss_initPath.m;
     2. run dss_marvin_script(0,100,1,[]  ,1,'RPN_NYU',1,[],0,0);
+    Pretrained model:     
+    http://dss.cs.princeton.edu/Release/pretrainedModels/DSS/ORN/DSSnet_ORN_d.marvin
 
 Note :
     If matlab system call fails, you can try to run the command directly.

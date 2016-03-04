@@ -41,7 +41,6 @@ count = 0;
 for i =1:length(imdb.image_ids)
     fprintf('%d/%d testing on image : %s \n',i,length(imdb.image_ids),imdb.image_ids{i});
     count = count + 1;
-    
     if trainsvm
         d = cnn3d_load_cached_features(cnn3d_model,imdb.image_ids{i},0,~onlygtflag,feat_opts.box_reg); % to change
         if isempty(d.feat)
@@ -52,6 +51,7 @@ for i =1:length(imdb.image_ids)
         zs = bsxfun(@plus, d.feat*cnn3d_model.detectors.W, cnn3d_model.detectors.B);
     else
         load(fullfile(cnn3d_model.conf.feat_cachedir,'po',imdb.image_ids{i}));
+        d = f;
         zs = f.score(:,2:end);% first score is back ground score
     end
     

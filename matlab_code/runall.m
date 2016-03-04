@@ -7,7 +7,7 @@ if ~exist('trainsvm','var')
 end
 load('cls.mat');
 amodalbox = 1; % use amodal box or modal box 
-replace =0;
+replace   = 0;
 [cnn3d_model] = dss_config(feaName,pos_include_gt,rmbadsize,box_reg,proposal_dir,amodalbox);
 mkdir(cnn3d_model.conf.cache_dir);
 cnn3d_model.classes = cls;

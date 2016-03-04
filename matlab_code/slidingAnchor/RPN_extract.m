@@ -7,7 +7,7 @@ load(fullfile(opt.SUNrgbd_toolbox,'Metadata/SUNRGBDMeta.mat'));
 load('cls.mat');
 load('anchorBox');
 nmsthralign = 0.35;
-fullinfo = 0;
+fullinfo = 1;
 
 
 NYUonly = 1; folderName = 'multi_dpcv1';            trainiter = 5000;

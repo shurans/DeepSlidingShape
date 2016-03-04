@@ -77,6 +77,7 @@ for imagNum =1:length(filelog)
     f.boxes = processbox(boxes);
     f.seqname = filelog(imagNum).seqname;
     numofbox = length(boxes);
+    
     if opt.loadfea
         f.feat  = features_fc5(start:start+numofbox-1,:);
     end
@@ -93,7 +94,11 @@ for imagNum =1:length(filelog)
        end
     end
     
-    start = start+numofbox;
+    if BoxperImage>0
+       start = start+BoxperImage;
+    else
+       start = start+numofbox;
+    end
     
     if numofbox>0
         if isfield(f.boxes,'classname')
