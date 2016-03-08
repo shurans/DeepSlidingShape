@@ -21,12 +21,14 @@
        http://dss.cs.princeton.edu/Release/result/proposal/RPN_SUNRGBD/
        http://dss.cs.princeton.edu/Release/result/proposal/RPN_NYU/
        by runing script:
-       downloadData('../image','http://dss.cs.princeton.edu/Release/image/','.tensor');
+       downloadData('../image','http://dss.cs.princeton.edu/Release/sunrgbd_dss_data/','.tensor');
 
     2. To train 3D regoin proposal network and extract 3D regoin proposal
-    cd code/matlab_code/slidingAnchor
-    run dss_prepareAnchorbox() to prepare training data.
-    run RPN_extract() to extract 3D regoin proposal.
+       cd code/matlab_code/slidingAnchor
+       run dss_prepareAnchorbox() to prepare training data.
+       run RPN_extract() to extract 3D regoin proposal.
+       You may need the segmentation result here:
+       downloadData('../image','http://dss.cs.princeton.edu/Release/seg/','.mat');
 
 * 3D object detection network: 
     1. change path in dss_initPath.m;
@@ -36,7 +38,7 @@
 
 Notes :
     1. If matlab system call fails, you can try to run the command directly.
-    2. The rotation matrixes for some of the images in the dataset () are different from the original SUNRGB-D dataset,  so that the rotation only contains camera tilt angle (i.e. point cloud does not rotated on the x,y plane). 
+    2. The rotation matrixes for some of the images in the dataset are different from the original SUNRGB-D dataset,  so that the rotation only contains camera tilt angle (i.e. point cloud does not rotated on the x,y plane). 
     All the results and ground truth boxes provided in this repo are using this rotation matrix. 
     To convert the rotation matrix you can reference the code "changeRoomR.m"
    
