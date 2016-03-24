@@ -63,7 +63,7 @@ for imageNum= imageNums
         xind   = floor((points3d(:,1)-SpaceRangefull(1,1))/Space.s);
         yind   = floor((points3d(:,2)-SpaceRangefull(2,1))/Space.s);
         zind   = floor((points3d(:,3)-SpaceRangefull(3,1))/Space.s);
-        cellIdx    = [xind+1,yind+1,zind+1];
+        cellIdx= [xind+1,yind+1,zind+1];
         
                
         [pointCountIntegral,pointCount] =getIntegralPtCount(bincellDim,cellIdx);
@@ -79,10 +79,10 @@ for imageNum= imageNums
             [indexes1, indexes2, indexes3] = ind2sub(size(EmptyBox),find(~EmptyBox(:)));
             %% only pick the  centered in Space
             center_f = bsxfun(@plus,[indexes1, indexes2, indexes3],0.5*bb_f_size);
-            inSpace = center_f(:,1)>margin_f+0.5&center_f(:,2)>margin_f+0.5&center_f(:,3)>margin_f+0.5&...
-                      center_f(:,1)<bincellDim(1)-margin_f+1&...
-                      center_f(:,2)<bincellDim(2)-margin_f+1&...
-                      center_f(:,3)<bincellDim(3)-margin_f+1;
+            inSpace  = center_f(:,1)>margin_f+0.5&center_f(:,2)>margin_f+0.5&center_f(:,3)>margin_f+0.5&...
+                       center_f(:,1)<bincellDim(1)-margin_f+1&...
+                       center_f(:,2)<bincellDim(2)-margin_f+1&...
+                       center_f(:,3)<bincellDim(3)-margin_f+1;
 
             xyz_Idx_inSpace = floor(center_f(inSpace,:)) - margin_f - 1;  % -1 for c++
             center_Idx_ALL = [center_Idx_ALL;xyz_Idx_inSpace];

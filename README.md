@@ -35,10 +35,10 @@
     2. run dss_marvin_script(0,100,1,[]  ,1,'RPN_NYU',1,[],0,0);
     Pretrained model:     
     http://dss.cs.princeton.edu/Release/pretrainedModels/DSS/ORN/DSSnet_ORN_d.marvin
-
+    
 Notes :
     1. If matlab system call fails, you can try to run the command directly.
-    2. The rotation matrixes for some of the images in the dataset are different from the original SUNRGB-D dataset,  so that the rotation only contains camera tilt angle (i.e. point cloud does not rotated on the x,y plane). 
+    2. The rotation matrixes for some of the images in the dataset are different from the original SUNRGB-D dataset,  so that the rotation only contains camera tilt angle (i.e. point cloud does not rotated on the x,y plane). We provide the data in this repo "./external/SUNRGBDtoolbox/Metadata/SUNRGBDMeta.mat"
     All the results and ground truth boxes provided in this repo are using this rotation matrix. 
     To convert the rotation matrix you can reference the code "changeRoomR.m"
    

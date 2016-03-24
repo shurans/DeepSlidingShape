@@ -1,4 +1,4 @@
-function [rgb,points3d,points3dMatrix]=read_3d_pts_general(depthInpaint,K,depthInpaintsize,imageName,crop)
+function [rgb,points3d,points3dMatrix]=read_3d_pts_general(depthInpaint,K,depthInpaintsize,imageName)
     % K is [fx 0 cx; 0 fy cy; 0 0 1];  
     % for uncrop image crop =[1,1];
     % imageName is the full path to image
