@@ -1,16 +1,16 @@
 function [boxfile,totalnumofbox] = dss_preparelist(train_or_test,NYUonly,outpath,proposal_dir,...
                                                    proposal,cls,boxreg,axisAlign,fullbox,BoxperImage,box_2dreg,orein_cls)
-SUNRGBDtoolboxdir = '/n/fs/modelnet/SUN3DV2/prepareGT/';
+SUNRGBDtoolboxdir = './external/SUNRGBDtoolbox/';
 gt = ~proposal;
 writeTarget = 0;
 write2dTarget = 0;
-writeorientation = 0;
-load('/n/fs/modelnet/deepDetect/code/detector_3d/hasorientation');
-hasorientation = ismember(cls,hasorientation);
+
+
+
 
 if NYUonly
-    load('/n/fs/modelnet/SUN3DV2/prepareGT/traintestSUNRGBD/test_kv1NYU.mat')
-    load('/n/fs/modelnet/SUN3DV2/prepareGT/traintestSUNRGBD/train_kv1NYU.mat')
+    load(fullfile(SUNRGBDtoolboxdir,'traintestSUNRGBD/test_kv1NYU.mat'))
+    load(fullfile(SUNRGBDtoolboxdir,'traintestSUNRGBD/train_kv1NYU.mat'))
     alltrain = trainSeq;
     alltest = testSeq;
     filename = 'boxes_NYU';
@@ -179,16 +179,6 @@ if ~exist(boxfile,'file')
                       fwrite(fid,single(diff_2dt(:)), 'single');
                       fwrite(fid,single(diff_2dp(:)), 'single');
                    end
-                   
-                   if writeorientation
-                       if hasorientation(classid)
-                          o = min(floor((boxes(bi).o+180)/18),19);
-                          fwrite(fid,int32(o), 'int32');
-                       else
-                          fwrite(fid,int32(-1), 'int32');
-                       end
-                   end
-                   
                else
                    boxes(bi).gtbb =[];
                    fwrite(fid,uint8(0), 'uint8');

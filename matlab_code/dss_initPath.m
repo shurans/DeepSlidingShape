@@ -20,7 +20,7 @@ function opt = dss_initPath()
             opt.log_dir             = fullfile(localdata_root,'marvinlog/');   
             
             
-            %rootpath = '/n/fs/modelnet/deepDetect/Release/';
+            
             rootpath = '/n/fs/modelnet/deepDetect/Release/';
             opt.feature_mat_dir            = fullfile(rootpath,'../featuremat/');
             opt.proposal_root              = fullfile(rootpath,'result/proposal/');
