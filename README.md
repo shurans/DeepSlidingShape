@@ -21,14 +21,14 @@
        http://dss.cs.princeton.edu/Release/result/proposal/RPN_SUNRGBD/
        http://dss.cs.princeton.edu/Release/result/proposal/RPN_NYU/
        by runing script:
-       downloadData('../image','http://dss.cs.princeton.edu/Release/sunrgbd_dss_data/','.tensor');
+       downloadData('../proposal','http://dss.cs.princeton.edu/Release/proposal/','.tensor');
 
     2. To train 3D regoin proposal network and extract 3D regoin proposal
        cd code/matlab_code/slidingAnchor
        run dss_prepareAnchorbox() to prepare training data.
        run RPN_extract() to extract 3D regoin proposal.
        You may need the segmentation result here:
-       downloadData('../image','http://dss.cs.princeton.edu/Release/seg/','.mat');
+       downloadData('../seg','http://dss.cs.princeton.edu/Release/seg/','.mat');
 
 * 3D object detection network: 
     1. change path in dss_initPath.m;
