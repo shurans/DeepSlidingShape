@@ -16,17 +16,17 @@
         by runing script:
         downloadData('../image','http://dss.cs.princeton.edu/Release/image/','.tensor');
     
-* 3D regoin proposal network:
-    1. You can download the precomputed regoin proposal for NYU and SUNRGBD dataset from:
+* 3D region proposal network:
+    1. You can download the precomputed region proposal for NYU and SUNRGBD dataset from:
        http://dss.cs.princeton.edu/Release/result/proposal/RPN_SUNRGBD/
        http://dss.cs.princeton.edu/Release/result/proposal/RPN_NYU/
        by runing script:
        downloadData('../proposal','http://dss.cs.princeton.edu/Release/proposal/','.tensor');
 
-    2. To train 3D regoin proposal network and extract 3D regoin proposal
+    2. To train 3D region proposal network and extract 3D region proposal
        cd code/matlab_code/slidingAnchor
        run dss_prepareAnchorbox() to prepare training data.
-       run RPN_extract() to extract 3D regoin proposal.
+       run RPN_extract() to extract 3D region proposal.
        You may need the segmentation result here:
        downloadData('../seg','http://dss.cs.princeton.edu/Release/seg/','.mat');
 
