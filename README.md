@@ -21,7 +21,7 @@
        http://dss.cs.princeton.edu/Release/result/proposal/RPN_SUNRGBD/
        http://dss.cs.princeton.edu/Release/result/proposal/RPN_NYU/
        by runing script:
-       downloadData('../proposal','http://dss.cs.princeton.edu/Release/proposal/','.tensor');
+       downloadData('../proposal','http://dss.cs.princeton.edu/Release/result/proposal/RPN_NYU/','.mat');
 
     2. To train 3D regoin proposal network and extract 3D regoin proposal
        cd code/matlab_code/slidingAnchor

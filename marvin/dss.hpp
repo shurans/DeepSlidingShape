@@ -54,7 +54,6 @@ void __global__ compute_xyzkernel(float * XYZimage, float * Depthimage, float * 
             int ix = blockIdx.x;
             int iy = threadIdx.x;
             int height = blockDim.x;
-            //
             //float depth = float(*((uint16_t*)(&(RGBDimage[iy + ix * height].D))))/1000.0;
             float depth = Depthimage[iy + ix * height];            
             // project the depth point to 3d
@@ -1525,9 +1524,9 @@ public:
       for (int i = 1; i< num_categories; ++i){
         for (int j = 0; j< num_percate; ++j){
           
-            int imgId = imgobj_pos_cates[i][j].ImageId;
-            int objId = imgobj_pos_cates[i][j].ObjId;
-            int tarId = imgobj_pos_cates[i][j].TarId;
+            int imgId = imgobj_pos_cates[i][counter_pos_cates[i]].ImageId;
+            int objId = imgobj_pos_cates[i][counter_pos_cates[i]].ObjId;
+            int tarId = imgobj_pos_cates[i][counter_pos_cates[i]].TarId;
 
             choose_img_id[count_batch_box] = imgId;
             chosen_scenes.push_back(scenes[imgId]);
@@ -2161,6 +2160,7 @@ public:
                 label_weights->CPUmem[batch_id*2*vol + 0*vol + linearInd] = CPUCompute2StorageT(neg_weight);
                 label_weights->CPUmem[batch_id*2*vol + 1*vol + linearInd] = CPUCompute2StorageT(neg_weight);
                 posnegcount[2]++;
+                negcount++;
               }
         }
         else{
@@ -2169,9 +2169,10 @@ public:
                 label_weights_1->CPUmem[batch_id*2*vol1 + 0*vol1 + linearInd] = CPUCompute2StorageT(neg_weight);
                 label_weights_1->CPUmem[batch_id*2*vol1 + 1*vol1 + linearInd] = CPUCompute2StorageT(neg_weight);
                 posnegcount[3]++;
+                negcount++;
               }
         }
-        negcount++;
+        
       }
             
       
