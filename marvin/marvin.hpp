@@ -5223,7 +5223,7 @@ public:
 			else if (0==type.compare("Scene3DData"))	{ pLayer = new Scene3DDataLayer(p); }
 			else if (0==type.compare("Scene2DData"))	{ pLayer = new Scene2DDataLayer(p); }
 			else if (0==type.compare("RPNDataLayer"))	{ pLayer = new RPNDataLayer(p); }
-			else if (0==type.compare("RenderMeshDataLayer"))	{ pLayer = new RenderMeshDataLayer(p); }			
+			//else if (0==type.compare("RenderMeshDataLayer"))	{ pLayer = new RenderMeshDataLayer(p); }			
 			else { std::cout<<"ERROR: recognizable layer in JSON file: "<<type<<std::endl; FatalError(__LINE__);};
 
 			pLayer->cudnnHandle = cudnnHandle;

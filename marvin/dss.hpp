@@ -1,4 +1,4 @@
-#include "render_3d.hpp"
+//#include "render_3d.hpp"
 
 int sum(std::vector<int> dim){
   return std::accumulate(dim.begin(), dim.end(), 0);
@@ -115,7 +115,7 @@ struct mesh_meta{
   float coeff[3];
 };
 
-enum Scene3DType { RGBD, Render, Mesh };
+enum Scene3DType { RGBD, Render};
 
 class Scene3D{
 public:
@@ -201,7 +201,6 @@ public:
   }
 
   void loadData2XYZimage(){
-      //enum Scene3DType { RGBD, Render, Mesh };
       switch(DataType){
         case RGBD:
             {
@@ -210,62 +209,19 @@ public:
               this -> compute_xyzGPU();
             }
             break;
-        case Mesh:
-            {
-              this ->loadMesh2XYZimage();
-            }
-            break;
         case Render:
             {
               this ->loadrender2XYZimage();
             }
             break;
         }
+        // case Mesh:
+        //     {
+        //       this ->loadMesh2XYZimage();
+        //     }
+        //     break;
   };
 
-  void loadMesh2XYZimage(){
-       std::vector<Mesh3D*> mesh_models(mesh_List.size());
-       for (int i = 0 ;i < mesh_List.size();++i){
-            mesh_models[i] = new Mesh3D(mesh_List[i].mesh_file);
-            // scale and rotate and move to  its center 
-            mesh_models[i]->zeroCenter();
-            float scale_ratio = mesh_models[i]->scaleMesh(mesh_List[i].coeff);
-            mesh_models[i]->roateMesh(R);
-            mesh_models[i]->translate(mesh_List[i].center);
-       }
-
-       float  camRT[12] ={0};
-       for (int i = 0; i<3; ++i){
-          for (int j = 0; j<3; ++j){
-            camRT[i*4+j] = R[j*3+i];
-          }
-       }
-
-       float P[12];
-       getProjectionMatrix(P,K, camRT);
-
-       float* depth =  renderDepth(mesh_models, P, width, height);
-
-       
-       // copy to GPU
-       checkCUDA(__LINE__, cudaMemcpy(K_GPU, (float*)K, sizeof(float)*9, cudaMemcpyHostToDevice));
-       checkCUDA(__LINE__, cudaMemcpy(R_GPU, (float*)R, sizeof(float)*9, cudaMemcpyHostToDevice)); 
-       float * depth_GPU;
-       checkCUDA(__LINE__, cudaMalloc(&depth_GPU, sizeof(float)*width*height));
-       checkCUDA(__LINE__, cudaMemcpy(depth_GPU, (float*)depth, sizeof(float)*width*height, cudaMemcpyHostToDevice)); 
-
-       // compute XYZimage
-       checkCUDA(__LINE__, cudaMalloc(&XYZimage, sizeof(float)*width*height*3));
-       compute_xyzkernel<<<width,height>>>(XYZimage,depth_GPU,K_GPU,R_GPU);
-
-       // free memory
-       checkCUDA(__LINE__, cudaFree(depth_GPU));
-       delete[] depth;
-       for (int i = 0 ;i <mesh_List.size();++i){
-           delete mesh_models[i];
-       }
-       GPUdata = true;
-  };
 
   void loadrender2XYZimage(){
        //Tensor<float>* depth = new Tensor<float>(filename);
@@ -614,7 +570,7 @@ __global__ void compute_TSDFGPUbox(StorageT* tsdf_data, float* R_data, float* K_
 
         //printf("x:%f,tsdf_x:%f,%f,%f\n",disTosurfaceMin,tsdf_x,tsdf_y,tsdf_z);          
     }
-//printf("before : %f,%f,%f\n",tsdf_x,tsdf_y,tsdf_z);
+    //printf("before : %f,%f,%f\n",tsdf_x,tsdf_y,tsdf_z);
 
     disTosurfaceMin = min(disTosurfaceMin/surface_thick,float(1.0));
     float ratio = 1.0 - disTosurfaceMin;
@@ -2242,483 +2198,7 @@ public:
 };
 
 
-class RenderMeshDataLayer : public DataLayer {
-public:
-    int epoch_prefetch;
-    Tensor<StorageT >* labelCPU; 
-    StorageT*   dataGPU;
 
-    std::future<void> lock;
-    std::vector<int> batch_size;
-
-    std::string file_list;
-    int context_pad;
-    std::vector<int> grid_size;
-    int encode_type;
-    float scale;
-    unsigned int num_categories;
-
-    std::string off_root;
-    std::vector<float> heigth_dis;
-    std::vector<sceneMesh*> sceneMeshList;
-    Tensor<StorageT >* oreintation_label;
-    Tensor<StorageT >* oreintation_label_w;
-
-    
-    float* K_GPU;
-    float* R_GPU;
-    float* depth_GPU;
-    float* XYZimage_GPU;
-    float* bb3d_GPU;
-    int num_oreintation;
-    bool orein_cls;
-    
-    int im_w;
-    int im_h;
-    float camK[9];
-
-    bool shuffle_data;
-
-    int numofitems(){ 
-      return sceneMeshList.size();  
-    };
-
-    int numofitemsTruncated(){
-      return sum(batch_size) * floor(double(numofitems())/double(sum(batch_size)));
-    };
-
-    void shuffle(){
-      std::shuffle(sceneMeshList.begin(),sceneMeshList.end(), rng );
-      return;
-    };
-
-    void init(){
-      epoch_prefetch = 0;
- 
-      train_me = false;
-      counter =0;
-      std::cout<<"loading file "<<file_list<<"\n";
-      FILE* fp = fopen(file_list.c_str(),"rb");
-      if (fp==NULL) { std::cout<<"fail to open file: "<<file_list<<std::endl; exit(EXIT_FAILURE); }
-
-      
-      unsigned int len = 0;
-      size_t file_size = 0;
-      file_size += fread((void*)(&len), sizeof(unsigned int), 1, fp);    
-      std::string height_dis_file;
-      height_dis_file.resize(len);
-      if (len>0) file_size += fread((void*)(height_dis_file.data()), sizeof(char), len, fp);
-      std::ifstream infile; 
-        infile.open(height_dis_file); 
-        int numcls;
-        infile >> numcls; 
-        heigth_dis.resize(2*numcls);
-        std::vector<std::string> classname(numcls);
-        for (int i =0;i<numcls;i++){ 
-          infile >> classname[i];
-          infile >> heigth_dis[2*i] ; 
-          infile >> heigth_dis[2*i+1]; 
-        }
-        infile.close();
-        
-        std::cout<<"numcls "<<numcls<<"\n";
-        std::cout<<"load file "<<height_dis_file<<"\n";
-
-      while (feof(fp)==0) {
-        sceneMesh* scene = new sceneMesh();
-        unsigned int len = 0;
-        file_size += fread((void*)(&len), sizeof(unsigned int), 1, fp);    
-        if (len==0) break;
-        
-        scene->mesh_file.resize(len);
-        if (len>0) file_size += fread((void*)(scene->mesh_file.data()), sizeof(char), len, fp);
-        //mesh_file = off_root+mesh_file; 
-        //scene->meshdata.readOFF(mesh_file);
-        scene->objects.resize(1);
-        Box3D box;
-        file_size += fread((void*)(&(box.category)), sizeof(unsigned int),   1, fp);
-        file_size += fread((void*)(box.base),        sizeof(float), 9, fp);
-        file_size += fread((void*)(box.center),      sizeof(float), 3, fp);
-        file_size += fread((void*)(box.coeff),       sizeof(float), 3, fp);
-        box = processbox (box, context_pad, grid_size[1]);
-        scene->objects[0] = box;
-        sceneMeshList.push_back(scene);
-      
-      }
-      fclose(fp);
-      std::cout<< "sceneMeshList length: "<<sceneMeshList.size()<<std::endl;
-      if (shuffle_data) shuffle();
-
-    };
-
-    RenderMeshDataLayer(std::string name_, Phase phase_, std::string file_list_, int batch_size_): DataLayer(name_), batch_size(batch_size_), file_list(file_list_){
-      phase = phase_;
-      init();
-    };
-
-    RenderMeshDataLayer(JSON* json){
-      SetValue(json, name,    "RenderMeshDataLayer")
-      SetValue(json, phase,   Training)
-      SetOrDie(json, file_list  )
-      SetOrDie(json, off_root   )
-      SetOrDie(json, grid_size  )
-      SetOrDie(json, batch_size   )
-      SetOrDie(json, encode_type  )
-      SetOrDie(json, scale    )
-      SetOrDie(json, context_pad  )
-      SetOrDie(json, num_categories   )
-      SetValue(json, num_oreintation, 20)
-      SetValue(json, orein_cls, false)
-      SetValue(json, shuffle_data, true)
-      
-      
-      im_w = 640;
-      im_h = 480;
-      camK[0] = 5.1885790117450188e+02; camK[1] = 0; camK[2] = 320;
-      camK[3] = 0; camK[4] = 5.1885790117450188e+02; camK[5] = 240;
-      camK[6] = 0; camK[7] = 0; camK[8] = 1;
-      //{fx, 0, cx, 0, fy, cy, 0, 0, 1};
-
-
-      std::cout<<"grid_size:   ";  veciPrint(grid_size);  std::cout<<std::endl;
-      std::cout<<"batch_size:  ";  veciPrint(batch_size); std::cout<<std::endl;
-      std::cout<<"encode_type: " << encode_type << std::endl;
-      std::cout<<"scale:     " << scale << std::endl;
-      std::cout<<"context_pad: " << context_pad << std::endl;
-      std::cout<<"orein_cls: " << orein_cls <<std::endl;
-      std::cout<<"num_oreintation: " << num_oreintation <<std::endl;
-      
-      
-      K_GPU      = NULL;
-      R_GPU      = NULL;
-      depth_GPU    = NULL;
-      XYZimage_GPU = NULL;
-      bb3d_GPU   = NULL;
-      
-      init();
-    };
-
-    ~RenderMeshDataLayer(){
-      if (lock.valid()) lock.wait();
-      for(size_t i=0;i<sceneMeshList.size();i++){
-        if (sceneMeshList[i]!=NULL) delete sceneMeshList[i];
-      }
-      if (R_GPU != NULL){     checkCUDA(__LINE__, cudaFree(R_GPU));       R_GPU = NULL;}
-      if (K_GPU != NULL){     checkCUDA(__LINE__, cudaFree(K_GPU));     K_GPU = NULL;}
-      if (XYZimage_GPU !=NULL){ checkCUDA(__LINE__, cudaFree(XYZimage_GPU));  XYZimage_GPU = NULL;}
-      if (bb3d_GPU     !=NULL){    checkCUDA(__LINE__, cudaFree(bb3d_GPU));    bb3d_GPU  = NULL;}
-      if (depth_GPU    !=NULL){   checkCUDA(__LINE__, cudaFree(depth_GPU));   depth_GPU = NULL;}
-
-    };
-
-    size_t Malloc(Phase phase_){
-      if (phase == Training && phase_==Testing) return 0;
-      size_t memoryBytes = 0;
-      std::cout<< (train_me? "* " : "  ");
-      std::cout<<name<<std::endl;
-
-      std::vector<int>data_dim,label_dim;
-
-      data_dim.push_back(sum(batch_size));
-      data_dim.insert( data_dim.end(), grid_size.begin(), grid_size.end() );
-      label_dim.push_back(sum(batch_size));
-      label_dim.push_back(1);   label_dim.push_back(1);   label_dim.push_back(1);   label_dim.push_back(1);
-
-      labelCPU = new Tensor<StorageT>(label_dim);
-
-      out[0]->need_diff = false;
-      memoryBytes += out[0]->Malloc(data_dim);
-      //std::cout<<"data_dim="; veciPrint(data_dim); std::cout<<std::endl;
-
-      out[1]->need_diff = false;
-      memoryBytes += out[1]->Malloc(label_dim);
-      //std::cout<<"label_dim="; veciPrint(label_dim); std::cout<<std::endl;
-
-      if (orein_cls){
-        std::vector<int> oreintation_label_dim(5,1);
-        std::vector<int> oreintation_label_w_dim(5,1);
-        oreintation_label_dim[0]   =  sum(batch_size);
-        oreintation_label_dim[1]   =  1;
-        oreintation_label_dim[2]   =  num_categories;
-
-        oreintation_label_w_dim[0] =  sum(batch_size);
-        oreintation_label_w_dim[1] =  num_oreintation;
-        oreintation_label_w_dim[2] =  num_categories;
-
-        oreintation_label = new Tensor<StorageT>(oreintation_label_dim);
-        oreintation_label_w = new Tensor<StorageT>(oreintation_label_w_dim);
-
-        out[2]->need_diff = false;
-        memoryBytes += out[2]->Malloc(oreintation_label_dim);
-
-        out[3]->need_diff = false;
-        memoryBytes += out[3]->Malloc(oreintation_label_w_dim);
-
-      }
-
-      checkCUDA(__LINE__, cudaMalloc(&dataGPU, numel(data_dim) * sizeofStorageT) );
-
-      checkCUDA(__LINE__, cudaMalloc(&K_GPU, sizeof(float)*9));
-      checkCUDA(__LINE__, cudaMalloc(&R_GPU, sizeof(float)*9));
-      checkCUDA(__LINE__, cudaMalloc(&depth_GPU, sizeof(float)*im_w*im_h));
-      checkCUDA(__LINE__, cudaMalloc(&bb3d_GPU,  sizeof(float)*15));
-      checkCUDA(__LINE__, cudaMalloc(&XYZimage_GPU,  sizeof(float)*im_w*im_h*3));
-
-      //lock = std::async(std::launch::async,&RenderMeshDataLayer::prefetch,this);
-      prefetch();
-      return memoryBytes;
-    };
-
-    void prefetch(){
-      //checkCUDA(__LINE__,cudaSetDevice(GPU));
-      if(orein_cls){
-        memset(oreintation_label->CPUmem,  0, oreintation_label->numBytes());
-        memset(oreintation_label_w->CPUmem,0, oreintation_label_w->numBytes());
-      }
-
-      //int tmpD; cudaGetDevice(&tmpD); std::cout<<"GPU at LINE "<<__LINE__<<" = "<<tmpD<<std::endl;
-
-      std::uniform_int_distribution<int>   xzRot_dis(0,360);
-      std::uniform_real_distribution<float> cam_tilt_dis(-5,0);
-      std::uniform_real_distribution<float> objz_dis(1.500,5.000);//depth 
-      std::uniform_real_distribution<float> objx_dis(-0.250,0.250);//left right
-
-      int batch_id = 0;
-      std::vector<int> category_count(num_categories,0);
-      std::vector<int> oreintation_count(num_categories,0);
-      unsigned long long  time0,time1,time2,time3;
-      unsigned long long T1 = 0;
-      unsigned long long T2 = 0;
-      unsigned long long T3 = 0;
-      while(batch_id < sum(batch_size)){
-        time0 = get_timestamp_dss();
-        
-        Box3D objbox = sceneMeshList[counter]->objects[0];
-        Mesh3D model(sceneMeshList[counter]->mesh_file);
-        time1 = get_timestamp_dss();
-
-        model.zeroCenter();
-        float Ryzswi[9] = {1, 0, 0, 0, 0, 1, 0, -1, 0};
-        model.roateMesh(Ryzswi); 
-        std::normal_distribution<double > objh_dis (heigth_dis[2*objbox.category],heigth_dis[2*objbox.category+1]);
-
-        float objh = objh_dis(rng);
-        float sizeTarget[3] = {-1,objh,-1};// only scale height
-        float scale_ratio = model.scaleMesh(sizeTarget);
-
-        float angle_yaw = xzRot_dis(rng);
-        float* R = genRotMat(angle_yaw);
-        model.roateMesh(R);
-        
-
-        Point3D newcenter;
-        newcenter.z = objz_dis(rng);
-        newcenter.x = objx_dis(rng)*newcenter.z;
-        newcenter.y = 0.5*objh-1; //newcenter.x = 0;  newcenter.y = -0.4;//1.24267; newcenter.z = 2.65842;
-        model.translate(newcenter);
-        time2 = get_timestamp_dss();   
-
-        float  tilt_angle = cam_tilt_dis(rng);
-        float* Rtilt = genTiltMat(tilt_angle);
-        float  camRT[12] = {0};
-
-        for (int i = 0; i<3; ++i){
-          for (int j = 0; j<3; ++j){
-            camRT[i*4+j] = Rtilt[i*3+j];
-          }
-        }
-        
-        
-        float* depth =  renderCameraView(&model, camK, camRT,im_w, im_h);
-
-        
-        /************************ box in point could coordinate ************************/
-        //transform the box 
-        for (int i =0;i<3;++i){
-          objbox.coeff[i] = scale_ratio*objbox.coeff[i];
-        }
-        
-        Point3D bbcenter = model.getBoxCenter();
-        objbox.center[0] = -1*bbcenter.x;
-        objbox.center[1] = bbcenter.z;
-        objbox.center[2] = bbcenter.y;
-        float Rotate_boxbase[4];
-        float angle_yaw_rad = -1*angle_yaw*3.14159265/180;
-        Rotate_boxbase[0] = cos(angle_yaw_rad)*objbox.base[0]-sin(angle_yaw_rad)*objbox.base[1];
-        Rotate_boxbase[1] = cos(angle_yaw_rad)*objbox.base[3]-sin(angle_yaw_rad)*objbox.base[4];
-
-        Rotate_boxbase[2] = sin(angle_yaw_rad)*objbox.base[0]+cos(angle_yaw_rad)*objbox.base[1];
-        Rotate_boxbase[3] = sin(angle_yaw_rad)*objbox.base[3]+cos(angle_yaw_rad)*objbox.base[4];
-
-        objbox.base[0] = Rotate_boxbase[0];
-        objbox.base[1] = Rotate_boxbase[2];
-        objbox.base[3] = Rotate_boxbase[1];
-        objbox.base[4] = Rotate_boxbase[3];
-
-        float R_data[9];
-        for (int i = 0; i<3; ++i){
-          for (int j = 0; j<3; ++j){
-            R_data[i*3+j] = Rtilt[j*3+i];
-          }
-        }
-
-        
-        int numValid = 0;
-        for (int i=1;i<im_w*im_h;++i){
-          if (depth[i]>0&depth[i]<8) {numValid++;}
-          else {depth[i] = 10;}
-        }
-        
-
-        if (numValid>500){
-          // copy data to GPU 
-          RGBDpixel * RGBDimage = NULL;
-
-          checkCUDA(__LINE__, cudaMemcpy(K_GPU, (float*)camK, sizeof(float)*9, cudaMemcpyHostToDevice));
-          checkCUDA(__LINE__, cudaMemcpy(R_GPU, (float*)R_data, sizeof(float)*9, cudaMemcpyHostToDevice)); 
-          checkCUDA(__LINE__, cudaMemcpy(depth_GPU, (float*)depth, sizeof(float)*im_w*im_h, cudaMemcpyHostToDevice)); 
-          checkCUDA(__LINE__, cudaMemcpy(bb3d_GPU, objbox.base, sizeof(float)*15, cudaMemcpyHostToDevice));
-
-          compute_xyzkernel<<<im_w,im_h>>>(XYZimage_GPU,depth_GPU,K_GPU,R_GPU);
-
-          StorageT * tsdf_data_GPU = &dataGPU[batch_id*grid_size[0]*grid_size[1]*grid_size[2]*grid_size[3]];
-          int THREADS_NUM = 1024;
-          int BLOCK_NUM = int((grid_size[1]*grid_size[2]*grid_size[3] + size_t(THREADS_NUM) - 1) / THREADS_NUM);
-          //std::cout<<"BLOCK_NUM"<<BLOCK_NUM<<std::endl;
-          compute_TSDFGPUbox_proj<<<BLOCK_NUM,THREADS_NUM>>>(tsdf_data_GPU, R_GPU, K_GPU, RGBDimage, XYZimage_GPU,
-                                                          bb3d_GPU, grid_size[1],grid_size[2],grid_size[3], grid_size[0], 
-                                                          im_w, im_h, encode_type, scale);
-
-          labelCPU->CPUmem[batch_id] = CPUCompute2StorageT(ComputeT(objbox.category));
-
-
-
-
-          int oreintation = floor((360-angle_yaw)/18);
-          if (orein_cls){
-              oreintation_label -> CPUmem[batch_id*num_categories + objbox.category] = CPUCompute2StorageT(ComputeT(oreintation));
-              for (int cid = 0;cid<num_oreintation;cid++){
-                  oreintation_label_w -> CPUmem[batch_id*num_oreintation*num_categories + cid*num_categories + objbox.category] = CPUCompute2StorageT(1);
-              }
-          }
-          oreintation_count[oreintation]++;
-          category_count[objbox.category]++;
-          batch_id++;
-
-          /*
-            for (int h=0; h<480; h=h+8){
-               for (int w=0; w<640; w = w+4) if (depth[h+w*480]<8) std::cout<<".";  else std::cout<<" ";
-               std::cout<<std::endl;
-            }
-            std::cout<<"oreintation"<<oreintation<<std::endl;
-            std::cout<<"angle_yaw"<<angle_yaw<<std::endl;
-            std::cout<<"objbox.category" <<objbox.category<<std::endl;
-            std::cout<<sceneMeshList[counter]->mesh_file<<std::endl;
-            std::cin.ignore();
-            */
-            
-
-          /************debug*********************/
-          /*
-            checkCUDA(__LINE__,cudaDeviceSynchronize());
-            for (int h=0; h<480; h=h+8){
-              for (int w=0; w<640; w = w+4) if (depth[h+w*480]<8) std::cout<<".";  else std::cout<<" ";
-              std::cout<<std::endl;
-            }
-            std::cout<<"R_data"<<std::endl;
-            for (int i = 0; i<3; ++i){
-              for (int j = 0; j<3; ++j){
-                std::cout<<R_data[i*3+j]<<",";
-              }
-              std::cout<<std::endl;
-            }
-            std::cout<<"objbox.base"<<std::endl;
-            for (int i = 0; i<3; ++i){
-              for (int j = 0; j<3; ++j){
-                std::cout<<objbox.base[i*3+j]<<",";
-              }
-              std::cout<<std::endl;
-            }
-            for (int j = 0; j<3; ++j){
-              std::cout<<objbox.coeff[j]<<",";
-            }
-            std::cout<<std::endl;
-
-            for (int j = 0; j<3; ++j){
-                std::cout<<objbox.center[j]<<",";
-            }
-            std::cout<<std::endl;
-
-            std::string outputfile = "DSS/debug/depth.bin";
-            FILE * fid = fopen(outputfile.c_str(),"wb");
-            checkCUDA(__LINE__, cudaMemcpy(depth, depth_GPU, im_w*im_h*sizeof(float), cudaMemcpyDeviceToHost) );
-            fwrite(depth,sizeof(float),480*640,fid);
-            fclose(fid);
-
-            float* XYZimage_CPU = new float[3*im_w*im_h];
-            checkCUDA(__LINE__, cudaMemcpy(XYZimage_CPU, XYZimage_GPU,3*im_w*im_h*sizeof(float), cudaMemcpyDeviceToHost) );
-
-            float* dataCPUmem = new float[grid_size[0]*grid_size[1]*grid_size[2]*grid_size[3]];
-            checkCUDA(__LINE__, cudaMemcpy(dataCPUmem, tsdf_data_GPU,grid_size[0]*grid_size[1]*grid_size[2]*grid_size[3]*sizeof(float), cudaMemcpyDeviceToHost) );
-            
-            outputfile = "DSS/debug/feature_renderSS.bin";
-            fid = fopen(outputfile.c_str(),"wb");
-            fwrite(dataCPUmem,sizeof(float),3*30*30*30,fid);
-            fclose(fid);
-            
-            outputfile = "DSS/debug/XYZimage_GPU.bin";
-            fid = fopen(outputfile.c_str(),"wb");
-            fwrite(XYZimage_CPU,sizeof(float),3*im_w*im_h,fid);
-            fclose(fid);
-
-
-            */
-            
-            
-          /************debug*********************/
-
-        }
-        //checkCUDA(__LINE__,cudaDeviceSynchronize());
-        time3 = get_timestamp_dss();   
-        T1 += time1-time0;
-        T2 += time2-time1;
-        T3 += time3-time2;
-
-        delete[] depth;
-        counter++;
-        if (counter >= sceneMeshList.size()){
-          counter = 0;
-          ++epoch_prefetch;
-          shuffle();
-        }
-
-        //std::cout<<counter<<std::endl;
-        
-      } 
-
-      //std::cout << "load mesh" << T1/1000 << " ms, " << "trainsform " << T2/1000 <<" rendering + tsdf: "<<T3/1000<<std::endl;
-      //<< copygputime/1000 << "transform " << transformtime/1000 << " ms" <<std::endl;  
-      std::cout<<"category_count: "; veciPrint(category_count);  std::cout<<std::endl;
-      std::cout<<"oreintation_count: "; veciPrint(oreintation_count);  std::cout<<std::endl;
-
-      
-      
-    };
-
-    void forward(Phase phase_){
-      //lock.wait();
-      std::swap(out[0]->dataGPU,dataGPU);
-      checkCUDA(__LINE__, cudaMemcpy(out[1]->dataGPU, labelCPU->CPUmem,      labelCPU->numBytes(),      cudaMemcpyHostToDevice) );
-      if(orein_cls){
-        //std::cout<<"copied"<<std::endl;
-        checkCUDA(__LINE__, cudaMemcpy(out[2]->dataGPU, oreintation_label->CPUmem,    oreintation_label->numBytes(),     cudaMemcpyHostToDevice) );
-        checkCUDA(__LINE__, cudaMemcpy(out[3]->dataGPU, oreintation_label_w->CPUmem,  oreintation_label_w->numBytes(),   cudaMemcpyHostToDevice) );
-      }
-      epoch = epoch_prefetch;
-      //lock = std::async(std::launch::async,&RenderMeshDataLayer::prefetch,this);
-      prefetch();
-    };
-};//end of RenderMeshDataLayer
 
 class Scene2DDataLayer : public DataLayer {
 public:
@@ -2913,6 +2393,7 @@ public:
     prefetch();
     //lock = std::async(std::launch::async,&Scene2DDataLayer::prefetch,this);
   };
-
 };//Scene2DDataLayer
+
+
 
