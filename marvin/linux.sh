@@ -4,7 +4,7 @@ rm marvin
 
 export PATH=$PATH:/usr/local/cuda/bin
 
-nvcc -std=c++11 -O3 -o marvin marvin.cu -I. -I/usr/local/cudnn/v3/include/ -I/usr/local/cuda/include -L/usr/local/cudnn/v3/lib64 -L/usr/local/cuda/lib64 -lcudart -lcublas -lcudnn -lGLU
+nvcc -std=c++11 -O3 -o marvin marvin.cu -I. -I/usr/local/cudnn/v3/include/ -I/usr/local/cuda/include -L/usr/local/cudnn/v3/lib64 -L/usr/local/cuda/lib64 -lcudart -lcublas -lcudnn
 
 
 export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/usr/local/cuda/lib64
