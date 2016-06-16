@@ -1,5 +1,5 @@
 %{
-load('/n/fs/modelnet/SUN3DV2/prepareGT/Metadata/SUNRGBDMeta_tight_Yaw.mat');
+load('/n/fs/modelnet/SUN3DV2/prepareGT/Metadata/SUNRGBDMeta.mat');
 for i =1:length(SUNRGBDMeta)
     data = SUNRGBDMeta(i);
     image = imread(data.rgbpath);
@@ -28,7 +28,7 @@ end
 %}
 
 clear all
-load('/n/fs/modelnet/SUN3DV2/prepareGT/Metadata/SUNRGBDMeta_tight_Yaw.mat');
+load('/n/fs/modelnet/SUN3DV2/prepareGT/Metadata/SUNRGBDMeta.mat');
 for i = 1:length(SUNRGBDMeta)
     data = SUNRGBDMeta(i);
     

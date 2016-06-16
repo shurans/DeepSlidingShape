@@ -18,7 +18,7 @@ end
 load('anchorBox'); 
 load('cls.mat');
 
-load('./external/SUNRGBDtoolbox/Metadata/SUNRGBDMeta_tight_Yaw.mat');
+load('./external/SUNRGBDtoolbox/Metadata/SUNRGBDMeta.mat');
 
 
 s = 0.1;

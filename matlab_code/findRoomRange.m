@@ -3,7 +3,7 @@ load('/n/fs/modelnet/SUN3DV2/prepareGT/traintestSUNRGBD/test_kv1NYU.mat')
 load('/n/fs/modelnet/SUN3DV2/prepareGT/traintestSUNRGBD/train_kv1NYU.mat')
 addpath /n/fs/modelnet/SUN3DV2/prepareGT/
 setup_benchmark;
-load('/n/fs/modelnet/SUN3DV2/prepareGT/Metadata/SUNRGBDMeta_tight_Yaw.mat');
+load('./external/SUNRGBDtoolbox/Metadata/SUNRGBDMeta.mat');
 
 allPath = [testSeq,trainSeq];
 seqnames = cell(1,length(allPath));

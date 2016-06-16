@@ -1,5 +1,5 @@
 function outfile = dss_RPNpreparelist(train_or_test,NYUonly)
-SUNRGBDtoolboxdir = '/n/fs/modelnet/SUN3DV2/prepareGT/';
+SUNRGBDtoolboxdir = './external/prepareGT/SUNRGBDtoolbox/';
 outpath = '/n/fs/modelnet/deepDetect/code/marvin/DSS/boxfile/';
 
 if NYUonly
@@ -35,7 +35,7 @@ end
 outfile = [outpath '/' filename '.list'];
 if ~exist(outfile,'file')
     fprintf('out: %s\n',outfile);
-    load([SUNRGBDtoolboxdir '/Metadata/' 'SUNRGBDMeta_tight_Yaw.mat']);
+    load([SUNRGBDtoolboxdir '/Metadata/' 'SUNRGBDMeta.mat']);
     fid = fopen(outfile,'wb');
     totalnumofbox =0;
     for imageNum = 1:length(seqnames)

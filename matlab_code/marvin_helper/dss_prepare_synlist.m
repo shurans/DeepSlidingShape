@@ -47,7 +47,7 @@ boxfile = [outpath '/' filename '.list'];
 %%
 if ~exist(boxfile,'file')
     fprintf('out: %s\n',boxfile);
-    load([SUNRGBDtoolboxdir '/Metadata/' 'SUNRGBDMeta_tight_Yaw.mat']);
+    load([SUNRGBDtoolboxdir '/Metadata/' 'SUNRGBDMeta.mat']);
     fid = fopen(boxfile,'wb');
     totalnumofbox =0;
     for imageNum = 1:length(seqnames)
