@@ -66,7 +66,8 @@ for imagNum =1:length(filelog)
     if gt
         boxes = filelog(imagNum).boxesfile;
     else
-        ld = load(filelog(imagNum).boxesfile);
+        %ld = load(filelog(imagNum).boxesfile);
+        ld = load([fullfile(opt.proposal_dir,filelog(imagNum).seqname) '.mat']);
         boxes = ld.candidates3d;
         clear ld;%boxes = filelog(imagNum).boxes;
         if BoxperImage>0
