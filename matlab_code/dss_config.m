@@ -27,7 +27,7 @@ training_opts = struct('svm_C',10^-3, ...
 opt = dss_initPath();
 conf.feaName = feaName;
 conf.SUNrgbd_toolbox = opt.SUNrgbd_toolbox;
-conf.dataRoot =opt.dataRoot;
+conf.dataRoot =opt.data_root;
 conf.feat_root = opt.feature_mat_dir;
 conf.feat_cachedir = [conf.feat_root  '/' conf.feaName '/'];
 
