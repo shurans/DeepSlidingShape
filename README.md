@@ -19,8 +19,7 @@ cd code/marvin
     downloadData('../hha','http://dss.cs.princeton.edu/Release/hha/','.tensor');
     
 ### 3D region proposal network:
-* You can download the precomputed region proposal for [NYU](http://dss.cs.princeton.edu/Release/result/proposal/RPN_NYU/) and [SUNRGBD](http://dss.cs.princeton.edu/Release/result/proposal/RPN_SUNRGBD/) dataset from:
-    by runing script:
+* You can download the precomputed region proposal for [NYU](http://dss.cs.princeton.edu/Release/result/proposal/RPN_NYU/) and [SUNRGBD](http://dss.cs.princeton.edu/Release/result/proposal/RPN_SUNRGBD/) dataset by runing script:
 
     ```shell
     downloadData('../proposal','http://dss.cs.princeton.edu/Release/result/proposal/RPN_NYU/','.mat');
