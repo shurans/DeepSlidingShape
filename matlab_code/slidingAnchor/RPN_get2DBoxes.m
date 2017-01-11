@@ -1,5 +1,5 @@
 NYUonly = 1;
-load('/n/fs/modelnet/SUN3DV2/prepareGT/Metadata/SUNRGBDMeta_tight_Yaw.mat');
+load('/n/fs/modelnet/SUN3DV2/prepareGT/Metadata/SUNRGBDMeta.mat');
 
 proposal_dir = '/n/fs/modelnet/deepDetect/proposal/RPN_multi_dpcv10.35top150_5000/';
 proposal_dir_tosave = '/n/fs/modelnet/deepDetect/proposal/RPN_multi_dpcv10.35top150_5000/';
